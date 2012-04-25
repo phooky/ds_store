@@ -10,24 +10,27 @@ class DsStore:
     def __init__(self):
         self.records=[]
 
+    def readBlock(self,f):
+        block_records=[]
+        (node_type,record_count) = struct.unpack(">II",f.read(8))
+        for i in range(record_count):
+            r = Record()
+            r.read(f)
+            block_records.append(r)
+        return block_records
+
     def read(self,f):
         # find data start
         f.seek(0x14)
         (self.record_start,) = struct.unpack(">I",f.read(4))
-        start = self.record_start
-        while 1:
-            r = Record()
-            r.read(f,start)
-            self.records.append(r)
-            start = 0
+        f.seek( (self.record_start & 0xff80) + 4 )
+        self.records = self.records + self.readBlock(f)
         
 class Record:
     def __init__(self):
         pass
 
-    def read(self,f,seek_to=0):
-        if seek_to != 0:
-            f.seek(seek_to)
+    def read(self,f):
         (fn_len,) = struct.unpack(">I", f.read(4))
         self.filename = f.read(fn_len*2)
         self.struct_type = f.read(4)
@@ -54,6 +57,13 @@ class Record:
             return str(self.data)
 
 
-ds = DsStore()
-f=open("sample")
-ds.read(f)
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("No store file specified; looking for .DS_Store")
+        path = '.DS_Store'
+    else:
+        path = sys.argv[1]
+
+    ds = DsStore()
+    f=open(path)
+    ds.read(f)
