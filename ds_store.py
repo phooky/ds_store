@@ -1,7 +1,7 @@
 #!/usr/bin/python3.2
 import struct
 import sys
-#import binplist
+import binplist
 
 # The DS_Store format was reverse engineered by Mark Mentovai. I am using
 # the documentation compiled by Wim Lewis for his Perl module.
@@ -56,8 +56,8 @@ class Record:
         if self.data_type == b'blob':
             if len(self.data) >= 6 and self.data[0:6] == b'bplist':
                 print("plist")
-                #root = binplist.decodeBinPlist(self.data)
-                #print(root)
+                root = binplist.decodeBinPlist(self.data)
+                print(root)
             else:
                 print("size",str(len(self.data)),"data"," ".join(map(hex,self.data[:limit])))
         elif self.data_type == b'long' or self.data_type == b'shor':
